@@ -11,7 +11,7 @@ use std::sync::Arc;
 pub struct PSConnection {
     pub(crate) host: String,
     pub(crate) auth: String,
-    pub session: Option<Session>,
+    pub session: Arc<Mutex<Option<Session>>>,
     pub client: reqwest::Client,
 }
 
@@ -21,27 +21,27 @@ impl PSConnection {
         Self {
             host: host.into(),
             auth: format!("Basic {}", to_base64(&format!("{}:{}", username, password))),
-            session: None,
+            session: Arc::new(Mutex::new(None)),
             client: reqwest::Client::new(),
         }
     }
 
     /// Execute a SQL query
-    pub async fn execute(&mut self, query: &str) -> Result<()> {
+    pub async fn execute(&self, query: &str) -> Result<()> {
         self.execute_raw(query).await?;
         Ok(())
     }
 
     /// Execute a SQL query and return the raw response
-    pub async fn execute_raw(&mut self, query: &str) -> Result<ExecuteResponse> {
+    pub async fn execute_raw(&self, query: &str) -> Result<ExecuteResponse> {
         let url = format!("https://{}/psdb.v1alpha1.Database/Execute", self.host);
         let sql = ExecuteRequest {
             query: query.into(),
-            session: self.session.clone(),
+            session: self.session.lock().await.clone(),
         };
 
         let res: ExecuteResponse = post(self, &url, sql).await?;
-        self.session = Some(res.session.clone());
+        *self.session.lock().await = Some(res.session.clone()); // TODO: Only do this if the session changes?
 
         if let Some(err) = res.error {
             anyhow::bail!("Code: \"{}\", message: \"{}\"", err.code, err.message);
@@ -70,10 +70,10 @@ impl PSConnection {
     }
 
     /// Refreshes the session
-    pub async fn refresh(&mut self) -> Result<()> {
+    pub async fn refresh(&self) -> Result<()> {
         let url = format!("https://{}/psdb.v1alpha1.Database/CreateSession", self.host);
         let res: ExecuteResponse = post_raw(self, &url, String::from("{}")).await?;
-        self.session = Some(res.session);
+        *self.session.lock().await = Some(res.session); // TODO: Only do this if the session changes?
 
         Ok(())
     }
