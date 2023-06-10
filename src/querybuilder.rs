@@ -7,6 +7,31 @@ pub struct QueryBuilder {
     values: Vec<String>,
 }
 
+pub trait Bindable {
+    fn to_string(self) -> String;
+}
+
+impl<T: Bindable> Bindable for Option<T> {
+    fn to_string(self) -> String {
+        match self {
+            Some(v) => v.to_string(),
+            None => "NULL".to_string(),
+        }
+    }
+}
+
+impl Bindable for i32 {
+    fn to_string(self) -> String {
+        <i32 as ToString>::to_string(&self)
+    }
+}
+
+impl Bindable for String {
+    fn to_string(self) -> String {
+        self
+    }
+}
+
 impl QueryBuilder {
     pub fn new(query: &str) -> Self {
         Self {
@@ -16,6 +41,17 @@ impl QueryBuilder {
     }
 
     pub fn bind<T: ToString>(mut self, value: T) -> Self {
+        let sanitized = value
+            .to_string()
+            .replace('\'', "''")
+            .replace('\"', "\\\"")
+            .replace('`', "\\`");
+
+        self.values.push(sanitized);
+        self
+    }
+
+    pub fn bind2<T: ToString>(mut self, value: T) -> Self {
         let sanitized = value
             .to_string()
             .replace('\'', "''")
