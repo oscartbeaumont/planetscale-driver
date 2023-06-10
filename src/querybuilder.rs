@@ -40,7 +40,7 @@ impl QueryBuilder {
         }
     }
 
-    pub fn bind<T: ToString>(mut self, value: T) -> Self {
+    pub fn bind<T: Bindable>(mut self, value: T) -> Self {
         let sanitized = value
             .to_string()
             .replace('\'', "''")
