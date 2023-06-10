@@ -3,6 +3,7 @@ pub use deserializer::Deserializer;
 pub use parser::Parser;
 pub use planetscale_driver_macros::{Database, DatabaseJSON};
 pub use querybuilder::QueryBuilder;
+pub use structs::*;
 
 mod connections;
 mod deserializer;
