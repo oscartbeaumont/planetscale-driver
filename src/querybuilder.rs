@@ -14,7 +14,7 @@ pub trait Bindable {
 impl<T: Bindable> Bindable for Option<T> {
     fn to_string(self) -> String {
         match self {
-            Some(v) => v.to_string(),
+            Some(v) => format!("'{}'", v.to_string()),
             None => "NULL".to_string(),
         }
     }
@@ -22,13 +22,13 @@ impl<T: Bindable> Bindable for Option<T> {
 
 impl Bindable for i32 {
     fn to_string(self) -> String {
-        <i32 as ToString>::to_string(&self)
+        format!("'{}'", <i32 as ToString>::to_string(&self))
     }
 }
 
 impl Bindable for String {
     fn to_string(self) -> String {
-        self
+        format!("'{}'", self)
     }
 }
 
