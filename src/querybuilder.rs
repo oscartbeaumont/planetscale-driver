@@ -7,28 +7,45 @@ pub struct QueryBuilder {
     values: Vec<String>,
 }
 
+pub enum Output {
+    Value(String),
+    Null,
+}
+
+impl Output {
+    fn to_string(self) -> String {
+        match self {
+            Output::Value(v) => format!("'{v}'")
+                .replace('\'', "''")
+                .replace('\"', "\\\"")
+                .replace('`', "\\`"),
+            Output::Null => "NULL".to_string(),
+        }
+    }
+}
+
 pub trait Bindable {
-    fn to_string(self) -> String;
+    fn to_output(self) -> Output;
 }
 
 impl<T: Bindable> Bindable for Option<T> {
-    fn to_string(self) -> String {
+    fn to_output(self) -> Output {
         match self {
-            Some(v) => format!("'{}'", v.to_string()),
-            None => "NULL".to_string(),
+            Some(v) => v.to_output(),
+            None => Output::Null,
         }
     }
 }
 
 impl Bindable for i32 {
-    fn to_string(self) -> String {
-        format!("'{}'", <i32 as ToString>::to_string(&self))
+    fn to_output(self) -> Output {
+        Output::Value(<i32 as ToString>::to_string(&self))
     }
 }
 
 impl Bindable for String {
-    fn to_string(self) -> String {
-        format!("'{}'", self)
+    fn to_output(self) -> Output {
+        Output::Value(self)
     }
 }
 
@@ -41,11 +58,7 @@ impl QueryBuilder {
     }
 
     pub fn bind<T: Bindable>(mut self, value: T) -> Self {
-        let sanitized = value
-            .to_string()
-            .replace('\'', "''")
-            .replace('\"', "\\\"")
-            .replace('`', "\\`");
+        let sanitized = value.to_output().to_string();
 
         self.values.push(sanitized);
         self
