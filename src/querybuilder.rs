@@ -15,10 +15,12 @@ pub enum Output {
 impl Output {
     fn to_string(self) -> String {
         match self {
-            Output::Value(v) => format!("'{v}'")
-                .replace('\'', "''")
-                .replace('\"', "\\\"")
-                .replace('`', "\\`"),
+            Output::Value(v) => format!(
+                "'{}'",
+                v.replace('\'', "''")
+                    .replace('\"', "\\\"")
+                    .replace('`', "\\`")
+            ),
             Output::Null => "NULL".to_string(),
         }
     }
@@ -59,18 +61,6 @@ impl QueryBuilder {
 
     pub fn bind<T: Bindable>(mut self, value: T) -> Self {
         let sanitized = value.to_output().to_string();
-
-        self.values.push(sanitized);
-        self
-    }
-
-    pub fn bind2<T: ToString>(mut self, value: T) -> Self {
-        let sanitized = value
-            .to_string()
-            .replace('\'', "''")
-            .replace('\"', "\\\"")
-            .replace('`', "\\`");
-
         self.values.push(sanitized);
         self
     }
@@ -81,6 +71,7 @@ impl QueryBuilder {
             query = query.replace(&format!("${}", i), &self.values[i]);
         }
 
+        println!("{}", query); // TODO
         query
     }
 
