@@ -24,7 +24,10 @@ pub async fn main() -> Result<()> {
         test: 1234,
     };
 
-    let res: TestD = query("SELECT 1010, '$0'").bind(json).fetch_one(&mut conn).await?;
+    let res: TestD = query("SELECT 1010, '$0'")
+        .bind(json)
+        .fetch_one(&conn)
+        .await?;
     println!("{:?}", res);
 
     return Ok(());

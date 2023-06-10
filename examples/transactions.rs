@@ -13,7 +13,7 @@ pub async fn main() -> Result<()> {
     let mut conn = PSConnection::new(&var("PS_HOST")?, &var("PS_USER")?, &var("PS_PASS")?);
 
     query("CREATE TABLE IF NOT EXISTS test_dsadsa2(id INT AUTO_INCREMENT PRIMARY KEY, value INT NOT NULL)")
-        .execute(&mut conn)
+        .execute(&conn)
         .await?;
 
     conn.execute("INSERT INTO test_dsadsa2(value) VALUES (321), (654)")
@@ -36,9 +36,7 @@ pub async fn main() -> Result<()> {
         })
         .await;
 
-    let res: Vec<TestDsadsa> = query("SELECT * FROM test_dsadsa2")
-        .fetch_all(&mut conn)
-        .await?;
+    let res: Vec<TestDsadsa> = query("SELECT * FROM test_dsadsa2").fetch_all(&conn).await?;
     println!("{:?}", res);
 
     conn.execute("DROP TABLE test_dsadsa2").await?;

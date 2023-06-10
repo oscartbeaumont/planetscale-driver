@@ -52,13 +52,13 @@ struct TestD {
 
 // ...
 
-let res: TestD = query("SELECT 1").fetch_one(&mut conn).await?;
+let res: TestD = query("SELECT 1").fetch_one(&conn).await?;
 println!("{:?}", res);
 
-let res: Vec<TestD> = query("SELECT val FROM testds").fetch_all(&mut conn).await?;
+let res: Vec<TestD> = query("SELECT val FROM testds").fetch_all(&conn).await?;
 println!("{:?}", res);
 
-let res: bool = query("SELECT true").fetch_scalar(&mut conn).await?;
+let res: bool = query("SELECT true").fetch_scalar(&conn).await?;
 println!("{:?}", res);
 ```
 
@@ -78,7 +78,7 @@ let name = "420";
 let res = query("INSERT INTO test(id, name) VALUES($0, \"$1\")")
   .bind(id)
   .bind(name)
-  .execute(&mut conn)
+  .execute(&conn)
   .await?;
 ```
 
@@ -105,7 +105,7 @@ let json: TestJSON = TestJSON {
     test: 1234,
 };
 
-let res: TestD = query("SELECT 1010, '$0'").bind(json).fetch_one(&mut conn).await?;
+let res: TestD = query("SELECT 1010, '$0'").bind(json).fetch_one(&conn).await?;
 println!("{:?}", res);
 ```
 
